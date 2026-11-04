@@ -1,0 +1,86 @@
+name: held-out reliability suite
+max_steps: 5
+timeout: 1.5
+mock:
+  failure_rates:
+    wrong_answer: 0.10
+    bad_tool_json: 0.05
+    tool_error: 0.05
+    timeout: 0.05
+    step_limit: 0.05
+tasks:
+  - id: capital-canada
+    prompt: What is the capital of Canada? Reply with only the city name.
+    checker: {type: exact, expected: Ottawa}
+    mock: {answer: Ottawa}
+  - id: ticket-format
+    prompt: Format ticket number 731 as TICKET followed by a hyphen and the number. Reply with only the ticket.
+    checker: {type: regex, pattern: '^TICKET-731$'}
+    mock: {answer: TICKET-731}
+  - id: inventory-json
+    prompt: Return a JSON object with item equal to pencil and count equal to 12, with no other keys.
+    checker:
+      type: json_schema
+      schema:
+        type: object
+        properties: {item: {const: pencil}, count: {const: 12}}
+        required: [item, count]
+        additionalProperties: false
+    mock: {answer: '{"item":"pencil","count":12}'}
+  - id: sorted-unique
+    prompt: Return the sorted unique values from [9, 2, 5, 2, 9] as a JSON array.
+    checker: {type: python, function: 'flakebench.example_plugins:sorted_unique'}
+    mock: {answer: '[2,5,9]'}
+  - id: multiply-prices
+    prompt: Use multiply to compute the cost of 7 items priced at 13 each. Reply with only the number.
+    tools:
+      - name: multiply
+        implementation: builtin:multiply
+        parameters:
+          type: object
+          properties: {a: {type: number}, b: {type: number}}
+          required: [a, b]
+          additionalProperties: false
+    checker: {type: exact, expected: '91'}
+    mock:
+      answer: '91'
+      tool_calls:
+        - {name: multiply, arguments: {a: 7, b: 13}}
+  - id: reverse-word
+    prompt: Use reverse on the word stressed. Reply with only its result.
+    tools:
+      - name: reverse
+        implementation: flakebench.example_plugins:reverse
+        parameters:
+          type: object
+          properties: {text: {type: string}}
+          required: [text]
+          additionalProperties: false
+    checker: {type: exact, expected: desserts}
+    mock:
+      answer: desserts
+      tool_calls:
+        - {name: reverse, arguments: {text: stressed}}
+  - id: two-calculations
+    prompt: Use multiply on 6 and 8, then add 10 to that result. Reply with only the final number.
+    tools:
+      - name: multiply
+        implementation: builtin:multiply
+        parameters:
+          type: object
+          properties: {a: {type: number}, b: {type: number}}
+          required: [a, b]
+          additionalProperties: false
+      - name: add
+        implementation: builtin:add
+        parameters:
+          type: object
+          properties: {a: {type: number}, b: {type: number}}
+          required: [a, b]
+          additionalProperties: false
+    checker: {type: exact, expected: '58'}
+    mock:
+      answer: '58'
+      tool_calls:
+        - {name: multiply, arguments: {a: 6, b: 8}}
+        - {name: add, arguments: {a: 48, b: 10}}

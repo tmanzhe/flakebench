@@ -1,0 +1,30 @@
+name: development
+max_steps: 4
+timeout: 1.5
+mock:
+  failure_rates:
+    wrong_answer: 0.10
+    bad_tool_json: 0.05
+    tool_error: 0.05
+    timeout: 0.05
+    step_limit: 0.05
+tasks:
+  - id: dev-greeting
+    prompt: Reply with exactly hello.
+    checker: {type: exact, expected: hello}
+    mock: {answer: hello}
+  - id: dev-add
+    prompt: Use add to compute 2 + 3. Reply with only the number.
+    tools:
+      - name: add
+        implementation: builtin:add
+        parameters:
+          type: object
+          properties: {a: {type: number}, b: {type: number}}
+          required: [a, b]
+          additionalProperties: false
+    checker: {type: regex, pattern: '^5$'}
+    mock:
+      answer: '5'
+      tool_calls:
+        - {name: add, arguments: {a: 2, b: 3}}
