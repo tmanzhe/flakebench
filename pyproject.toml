@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flakebench"
+version = "0.1.0"
+description = "A small agent reliability harness"
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6", "jsonschema>=4.18"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+flakebench = "flakebench.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
